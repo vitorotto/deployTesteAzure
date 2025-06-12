@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teste de Requisições HTTP</title>
+</head>
+<body>
+  <h2>Testes HTTP com ID e Corpo</h2>
+
+  <label for="idInput">ID (opcional para GET):</label><br/>
+  <input type="number" id="idInput" placeholder="Ex: 1"><br/><br/>
+
+  <label for="msgInput">Mensagem (apenas para POST, PUT, PATCH):</label><br/>
+  <input type="text" id="msgInput" placeholder="Digite a mensagem"><br/><br/>
+
+  <button onclick="makeRequest('GET')">GET</button>
+  <button onclick="makeRequest('POST')">POST</button>
+  <button onclick="makeRequest('PUT')">PUT</button>
+  <button onclick="makeRequest('PATCH')">PATCH</button>
+  <button onclick="makeRequest('DELETE')">DELETE</button>
+
+  <h3>Resposta:</h3>
+  <pre id="responseOutput" style="background-color: #f4f4f4; padding: 10px;"></pre>
+
+  <script>
+    function makeRequest(method) {
+      const id = document.getElementById('idInput').value.trim();
+      const msg = document.getElementById('msgInput').value.trim();
+
+      // Monta a URL
+      let url = '/api/data';
+      if (id) {
+        url += `/${id}`;
+      }
+
+      // Define as opções básicas
+      const options = {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      // Só adiciona o body para métodos que precisam
+      if (['POST', 'PUT', 'PATCH'].includes(method)) {
+        options.body = JSON.stringify({ message: msg });
+      }
+
+      // Executa a requisição
+      fetch(url, options)
+        .then(async res => {
+          const contentType = res.headers.get('content-type') || '';
+          const body = contentType.includes('application/json')
+            ? await res.json()
+            : await res.text();
+
+          document.getElementById('responseOutput').textContent =
+            `Status: ${res.status} ${res.statusText}\n\nResposta:\n${JSON.stringify(body, null, 2)}`;
+        })
+        .catch(err => {
+          document.getElementById('responseOutput').textContent = `Erro: ${err.message}`;
+        });
+    }
+  </script>
+</body>
+</html>
