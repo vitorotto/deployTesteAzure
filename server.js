@@ -15,6 +15,10 @@ let dados = [
 ];
 
 // GET com ou sem ID
+app.get('/api/data', (req, res) => {
+  return res.status(200).json(dados)
+})
+
 app.get('/api/data/:id', (req, res) => {
     const { id } = req.params; // Acessando param da URL (ex: /api/data/1)
     if (id) {
