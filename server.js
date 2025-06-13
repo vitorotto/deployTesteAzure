@@ -2,7 +2,7 @@ require("dotenv-safe").config();
 const express = require('express');
 const jwt = require('jsonwebtoken')
 const app = express();
-const PORT = process.env.SERVER_PORT;
+const PORT = process.env.PORT;
 let user = [{
   id: 1,
   email: "email@email.com",
