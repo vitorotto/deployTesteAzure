@@ -1,6 +1,39 @@
+require("dotenv-safe").config();
 const express = require('express');
+const jwt = require('jsonwebtoken')
 const app = express();
 const PORT = process.env.PORT || 3000;
+let user = [{
+  id: 1,
+  email: "email@email.com",
+  password: "12345678"
+}]
+
+function genToken(id) {
+  return jwt.sign({ id: id }, JWT_SECRET, { expiresIn: "40m" })
+}
+
+function decodeToken(token) {
+  return jwt.verify( token, JWT_SECRET, ( err,user) => {
+    if(err) {
+      return false
+    } else {
+      return user
+    }
+  })
+}
+
+function authMiddleware(req, res, next) {
+  const token = req.headers['authorization']
+
+  if(!token) return res.status(401).json('Sem token')
+
+  jwt.verify(token, process.env.SECRET, (err, decoded) => {
+    if (err) return res.status(500).json({ auth: false, message: 'Falha na autenticação do token', err: err });
+    req.userId = decoded.id;
+    next()
+  })
+}
 
 // Permite que o Express entenda JSON no corpo da requisição
 app.use(express.json());
@@ -14,8 +47,29 @@ let dados = [
   { id: 2, message: 'Segunda mensagem' }
 ];
 
-// GET com ou sem ID
-app.get('/api/data', (req, res) => {
+app.post('/api/login', (req, res) => {
+  const { id, email, password } = req.body
+
+  const data = user.find(us => {
+    if (us.email === email && us.password === password) {
+      return us
+    }
+  });
+
+  if(data) {
+    const token = jwt.sign({ id }, process.env.SECRET, { expiresIn: 300 })
+    return res.json({ auth: true, token: token });
+  }
+
+  res.status(500).json({ message: "Login inválido" });
+})
+
+app.post('/api/logout', (req, res) => {
+  res.json({ auth: false, token: null })
+})
+
+// GET com ou sem IDcjccycy
+app.get('/api/data', authMiddleware, (req, res) => {
   return res.status(200).json(dados)
 })
 
